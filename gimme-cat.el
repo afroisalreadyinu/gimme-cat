@@ -16,7 +16,7 @@
 	      (secret (match-string-no-properties 2 photo-ids))
 	      (server (match-string-no-properties 3 photo-ids))
 	      (farm (match-string-no-properties 4 photo-ids)))
-	  (setq urls (cons (format "http://farm%s.staticflickr.com/%s/%s_%s_m.jpg" farm server id secret) urls)))))
+	  (setq urls (cons (format "http://farm%s.staticflickr.com/%s/%s_%s_z.jpg" farm server id secret) urls)))))
     urls))
 
 
