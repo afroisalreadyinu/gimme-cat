@@ -26,6 +26,7 @@
     (shell-command-to-string command)
     (find-file tempfile-path)))
 
+
 (defun get-cat-urls (kitten-tag)
   (let* ((url (format "http://api.flickr.com/services/rest/?format=json&sort=random&method=flickr.photos.search&tags=%s&tag_mode=all&api_key=%s&per_page=100" gimme-cat-tag gimme-cat-api-key)))
     (dl-url url ".json")
@@ -36,10 +37,25 @@
       (setq gimme-cat-last-updated (float-time))
       (setq gimme-cat-urls photo-urls))))
 
+
 (defun gimme-cat ()
   (interactive)
   (when (> (/ (- (float-time) gimme-cat-last-updated) (* 60 60)) 1)
     (get-cat-urls gimme-cat-tag))
   (dl-url (nth (random (length gimme-cat-urls)) gimme-cat-urls) ".jpg"))
+
+
+(defun close-if-cat (buffer)
+  (let ((filename (buffer-file-name buffer))
+	(buffername (buffer-name buffer)))
+    (when (and filename (string-match "catfile.*[\.json|\.jpg]" filename))
+      (kill-buffer buffer)
+      (message (format "cat buffer %s closed." buffername)))))
+
+
+(defun close-gimmecat-buffers ()
+  (interactive)
+  (mapcar 'close-if-cat (buffer-list)))
+
 
 (provide 'gimme-cat)

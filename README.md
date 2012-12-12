@@ -10,3 +10,7 @@ follows:
 
 And now enjoy kittens in Emacs. Images can be displayed only with
 Emacs versions capable of windowing, btw (so not on the command line).
+
+For every image, a new buffer is opened. If you don't want to bother
+closing them individually, use the `close-gimmecat-buffers` to close
+all the buffers opened by gimme-cat.
