@@ -41,11 +41,13 @@
 
 (defun gimme-cat (arg)
   (interactive "P")
-  (when (or
-	 arg
-	 (> (/ (- (float-time) gimme-cat-last-updated) (* 60 60)) 1))
+  (when (or arg
+	    (not gimme-cat-urls)
+	    (> (/ (- (float-time) gimme-cat-last-updated) (* 60 60)) 1))
     (get-cat-urls gimme-cat-tag))
-  (dl-url (nth (random (length gimme-cat-urls)) gimme-cat-urls) ".jpg"))
+  (let ((img-url (nth (random (length gimme-cat-urls)) gimme-cat-urls)))
+    (dl-url img-url ".jpg")
+    (setq gimme-cat-urls (delete img-url gimme-cat-urls))))
 
 
 (defun close-if-cat (buffer)
