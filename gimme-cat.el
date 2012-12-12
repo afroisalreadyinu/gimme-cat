@@ -28,7 +28,8 @@
 
 
 (defun get-cat-urls (kitten-tag)
-  (let* ((url (format "http://api.flickr.com/services/rest/?format=json&sort=random&method=flickr.photos.search&tags=%s&tag_mode=all&api_key=%s&per_page=100" gimme-cat-tag gimme-cat-api-key)))
+  (message "Getting image list from flickr")
+  (let* ((url (format "http://api.flickr.com/services/rest/?format=json&sort=random&method=flickr.photos.search&tags=%s&tag_mode=all&api_key=%s&per_page=200" gimme-cat-tag gimme-cat-api-key)))
     (dl-url url ".json")
     (goto-char (point-min))
     (re-search-forward "\"photo\":\\[\{\\(.*\\)\\]\}")
@@ -38,9 +39,11 @@
       (setq gimme-cat-urls photo-urls))))
 
 
-(defun gimme-cat ()
-  (interactive)
-  (when (> (/ (- (float-time) gimme-cat-last-updated) (* 60 60)) 1)
+(defun gimme-cat (arg)
+  (interactive "P")
+  (when (or
+	 arg
+	 (> (/ (- (float-time) gimme-cat-last-updated) (* 60 60)) 1))
     (get-cat-urls gimme-cat-tag))
   (dl-url (nth (random (length gimme-cat-urls)) gimme-cat-urls) ".jpg"))
 
