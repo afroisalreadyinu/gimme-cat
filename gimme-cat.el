@@ -2,6 +2,7 @@
 (defvar gimme-cat-last-updated 0)
 (defvar gimme-cat-api-key "ac6d4ba1e8c5ab491d534b480c830c37")
 (defvar gimme-cat-tag "kitten")
+(defvar gimme-cat-url-batch-size 500)
 
 (defun parse-photo-info ()
   (let ((finished nil)
@@ -29,7 +30,7 @@
 
 (defun get-cat-urls (kitten-tag)
   (message "Getting image list from flickr")
-  (let* ((url (format "http://api.flickr.com/services/rest/?format=json&sort=random&method=flickr.photos.search&tags=%s&tag_mode=all&api_key=%s&per_page=500" gimme-cat-tag gimme-cat-api-key)))
+  (let* ((url (format "http://api.flickr.com/services/rest/?format=json&sort=random&method=flickr.photos.search&tags=%s&tag_mode=all&api_key=%s&per_page=%d" gimme-cat-tag gimme-cat-api-key gimme-cat-url-batch-size)))
     (dl-url url ".json")
     (let* ((photo-urls (parse-photo-info)))
       (kill-buffer (current-buffer))
@@ -64,5 +65,4 @@
 (provide 'gimme-cat)
 
 ;; TODO
-;; - Don't use regular expression to pick the photo info list
 ;; - Show image info somehow
