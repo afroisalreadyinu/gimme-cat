@@ -23,7 +23,7 @@
 (defun dl-url (url suffix)
   (let ((gimme-wget (shell-command-to-string "which wget")))
     (when (equal gimme-wget "")
-      (error "You don't have wget on your Emacs path. Please consult the README.")))
+      (error "You don't have wget on your Emacs path. Please consult the README on how to fix this.")))
   (let* ((tempfile-path (make-temp-file "catfile" nil suffix))
 	(command (format "wget \"%s\" -O %s" url tempfile-path)))
     (shell-command-to-string command)
