@@ -21,6 +21,9 @@
 
 
 (defun dl-url (url suffix)
+  (let ((gimme-wget (shell-command-to-string "which wget")))
+    (when (equal gimme-wget "")
+      (error "You don't have wget on your Emacs path. Please consult the README.")))
   (let* ((tempfile-path (make-temp-file "catfile" nil suffix))
 	(command (format "wget \"%s\" -O %s" url tempfile-path)))
     (shell-command-to-string command)
@@ -29,7 +32,7 @@
 
 (defun get-cat-urls (kitten-tag)
   (message "Getting image list from flickr")
-  (let* ((url (format "http://api.flickr.com/services/rest/?format=json&sort=random&method=flickr.photos.search&tags=%s&tag_mode=all&api_key=%s&per_page=200" gimme-cat-tag gimme-cat-api-key)))
+  (let* ((url (format "http://api.flickr.com/services/rest/?format=json&sort=random&method=flickr.photos.search&tags=%s&tag_mode=all&api_key=%s&per_page=100" gimme-cat-tag gimme-cat-api-key)))
     (dl-url url ".json")
     (goto-char (point-min))
     (re-search-forward "\"photo\":\\[\{\\(.*\\)\\]\}")
@@ -64,3 +67,7 @@
 
 
 (provide 'gimme-cat)
+
+;; TODO
+;; - Don't use regular expression to pick the photo info list
+;; - Show image info somehow
