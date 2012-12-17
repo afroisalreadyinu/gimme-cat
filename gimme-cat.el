@@ -1,3 +1,9 @@
+;; This work is licensed under the Creative Commons Attribution 3.0
+;; Unported License. To view a copy of this license, visit
+;; http://creativecommons.org/licenses/by/3.0/ or send a letter to
+;; Creative Commons, 444 Castro Street, Suite 900, Mountain View,
+;; California, 94041, USA.
+
 (defvar gimme-cat-urls nil)
 (defvar gimme-cat-last-updated 0)
 (defvar gimme-cat-api-key "ac6d4ba1e8c5ab491d534b480c830c37")
@@ -46,6 +52,7 @@
     (get-cat-urls gimme-cat-tag))
   (let ((img-url (nth (random (length gimme-cat-urls)) gimme-cat-urls)))
     (dl-url img-url ".jpg")
+    (message (format "Now showing %s" img-url))
     (setq gimme-cat-urls (delete img-url gimme-cat-urls))))
 
 
@@ -66,3 +73,5 @@
 
 ;; TODO
 ;; - Show image info somehow
+;; - Bind r key to loading a new image
+;; - Save images in the same file in a temp directory.
