@@ -50,9 +50,6 @@
             (> (/ (- (float-time) gimme-cat-last-updated) (* 60 60)) 1))
     (get-cat-urls gimme-cat-tag))
   (let ((img-url (nth (random (length gimme-cat-urls)) gimme-cat-urls)))
-<<<<<<< HEAD
-    (dl-url img-url ".jpg")
-    (message (format "Now showing %s" img-url))
     (dl-url img-url)
     (image-mode)
     (setq gimme-cat-is-cat t)
