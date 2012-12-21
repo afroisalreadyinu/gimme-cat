@@ -9,8 +9,31 @@
 (defvar gimme-cat-api-key "ac6d4ba1e8c5ab491d534b480c830c37")
 (defvar gimme-cat-tag "kitten")
 (defvar gimme-cat-url-batch-size 500)
-(defvar gimme-cat-is-cat nil)
-(make-variable-buffer-local 'gimme-cat-is-cat)
+(defvar gimme-cat-mode nil)
+(make-variable-buffer-local 'gimme-cat-mode)
+
+(defun gimme-cat-mode (&optional arg)
+  "gimme-cat minor mode"
+  (interactive "P")
+  (setq gimme-cat-mode (if (null arg) (not gimme-cat-mode)
+			 (> (prefix-numeric-value arg) 0))))
+
+(defvar gimme-cat-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "SPC") 'gimme-cat)
+    (define-key map (kbd "k") 'close-gimmecat-buffers)
+    map))
+
+(unless (assq 'gimme-cat-mode minor-mode-alist)
+  (setq minor-mode-alist
+	(cons '(gimme-cat-mode " gimme-cat-mode")
+	      minor-mode-alist)))
+
+(unless (assq 'gimme-cat-mode minor-mode-map-alist)
+  (setq minor-mode-map-alist
+	(cons (cons 'gimme-cat-mode gimme-cat-keymap)
+	      minor-mode-map-alist)))
+
 
 (defun parse-photo-info ()
   (let ((finished nil)
@@ -55,13 +78,13 @@
   (let ((img-url (nth (random (length gimme-cat-urls)) gimme-cat-urls)))
     (dl-url img-url)
     (image-mode)
-    (setq gimme-cat-is-cat t)
+    (gimme-cat-mode)
     (setq gimme-cat-urls (delete img-url gimme-cat-urls))))
 
 
 (defun close-if-cat (buffer)
   (with-current-buffer buffer
-    (when gimme-cat-is-cat
+    (when gimme-cat-mode
       (kill-buffer))))
 
 
