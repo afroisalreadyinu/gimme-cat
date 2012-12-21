@@ -27,10 +27,13 @@
     urls))
 
 (defun dl-url (url)
-  (switch-to-buffer (url-retrieve-synchronously url))
-  (goto-char (point-min))
-  (search-forward "\n\n")
-  (delete-region (point-min) (point)))
+  (let ((gimme-wget (shell-command-to-string "which wget")))
+    (when (equal gimme-wget "")
+      (error "You don't have wget on your Emacs path. Please consult the README on how to fix this.")))
+  (let* ((tempfile-path (make-temp-file "catfile"))
+	(command (format "wget \"%s\" -O %s" url tempfile-path)))
+    (shell-command-to-string command)
+    (find-file tempfile-path)))
 
 
 (defun get-cat-urls (kitten-tag)
