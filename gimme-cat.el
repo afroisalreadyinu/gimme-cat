@@ -11,6 +11,8 @@
 (defvar gimme-cat-url-batch-size 500)
 (defvar gimme-cat-mode nil)
 (make-variable-buffer-local 'gimme-cat-mode)
+(defvar gimme-cat-current nil)
+(make-variable-buffer-local 'gimme-cat-current)
 
 (defun gimme-cat-mode (&optional arg)
   "gimme-cat minor mode"
@@ -22,6 +24,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "SPC") 'gimme-cat)
     (define-key map (kbd "k") 'close-gimmecat-buffers)
+    (define-key map (kbd "o") 'open-img-page)
     map))
 
 (unless (assq 'gimme-cat-mode minor-mode-alist)
@@ -40,13 +43,19 @@
         (urls '()))
     (while (not finished)
       (condition-case nil
-          (re-search-forward "\"id\":\"\\([0-9]+\\)\"[^\{]*\"secret\":\"\\([a-z0-9]+\\)\"[^\{]*\"server\":\"\\([0-9]+\\)\"[^\{]*\"farm\":\\([0-9]+\\)")
+	  ;; order: id owner secret server farm
+          (re-search-forward "\"id\":\"\\([0-9]+\\)\"[^\{]*\"owner\":\"\\([^\"]+\\)\"[^\{]*\"secret\":\"\\([a-z0-9]+\\)\"[^\{]*\"server\":\"\\([0-9]+\\)\"[^\{]*\"farm\":\\([0-9]+\\)")
         (error (setq finished 't)))
       (let ((id (match-string-no-properties 1))
-            (secret (match-string-no-properties 2))
-            (server (match-string-no-properties 3))
-            (farm (match-string-no-properties 4)))
-        (setq urls (cons (format "http://farm%s.staticflickr.com/%s/%s_%s_z.jpg" farm server id secret) urls))))
+            (owner (match-string-no-properties 2))
+            (secret (match-string-no-properties 3))
+            (server (match-string-no-properties 4))
+            (farm (match-string-no-properties 5)))
+        (setq urls
+	      (cons
+	       (cons (format "http://farm%s.staticflickr.com/%s/%s_%s_z.jpg" farm server id secret)
+		     (format "http://www.flickr.com/photos/%s/%s/" owner id))
+	       urls))))
     urls))
 
 (defun dl-url (url)
@@ -75,11 +84,12 @@
             (not gimme-cat-urls)
             (> (/ (- (float-time) gimme-cat-last-updated) (* 60 60)) 1))
     (get-cat-urls gimme-cat-tag))
-  (let ((img-url (nth (random (length gimme-cat-urls)) gimme-cat-urls)))
-    (dl-url img-url)
+  (let ((img-and-page-url (nth (random (length gimme-cat-urls)) gimme-cat-urls)))
+    (dl-url (car img-and-page-url))
     (image-mode)
     (gimme-cat-mode)
-    (setq gimme-cat-urls (delete img-url gimme-cat-urls))))
+    (setq gimme-cat-urls (delete img-and-page-url gimme-cat-urls))
+    (setq gimme-cat-current img-and-page-url)))
 
 
 (defun close-if-cat (buffer)
@@ -92,10 +102,8 @@
   (interactive)
   (mapcar 'close-if-cat (buffer-list)))
 
+(defun open-img-page ()
+  (interactive)
+  (browse-url (cdr gimme-cat-current)))
 
 (provide 'gimme-cat)
-
-;; TODO
-;; - Show image info somehow
-;; - Bind r key to loading a new image
-;; - Save images in the same file in a temp directory.
