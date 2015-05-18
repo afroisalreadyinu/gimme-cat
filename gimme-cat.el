@@ -4,6 +4,8 @@
 ;; Creative Commons, 444 Castro Street, Suite 900, Mountain View,
 ;; California, 94041, USA.
 
+(require 'json)
+
 (defvar gimme-cat-urls nil)
 (defvar gimme-cat-last-updated 0)
 (defvar gimme-cat-api-key "ac6d4ba1e8c5ab491d534b480c830c37")
@@ -29,48 +31,45 @@
 
 (unless (assq 'gimme-cat-mode minor-mode-alist)
   (setq minor-mode-alist
-	(cons '(gimme-cat-mode " gimme-cat-mode")
-	      minor-mode-alist)))
+        (cons '(gimme-cat-mode " gimme-cat-mode")
+              minor-mode-alist)))
 
 (unless (assq 'gimme-cat-mode minor-mode-map-alist)
   (setq minor-mode-map-alist
-	(cons (cons 'gimme-cat-mode gimme-cat-keymap)
-	      minor-mode-map-alist)))
+        (cons (cons 'gimme-cat-mode gimme-cat-keymap)
+              minor-mode-map-alist)))
 
+
+(defun photo-to-data (photo)
+  (cons (format "https://farm%s.staticflickr.com/%s/%s_%s_z.jpg"
+                (gethash "farm" photo)
+                (gethash "server" photo)
+                (gethash "id" photo)
+                (gethash "secret" photo))
+        (format "https://www.flickr.com/photos/%s/%s/"
+                (gethash "owner" photo)
+                (gethash "id" photo))))
 
 (defun parse-photo-info ()
-  (let ((finished nil)
-        (urls '()))
-    (while (not finished)
-      (condition-case nil
-	  ;; order: id owner secret server farm
-          (re-search-forward "\"id\":\"\\([0-9]+\\)\"[^\{]*\"owner\":\"\\([^\"]+\\)\"[^\{]*\"secret\":\"\\([a-z0-9]+\\)\"[^\{]*\"server\":\"\\([0-9]+\\)\"[^\{]*\"farm\":\\([0-9]+\\)")
-        (error (setq finished 't)))
-      (let ((id (match-string-no-properties 1))
-            (owner (match-string-no-properties 2))
-            (secret (match-string-no-properties 3))
-            (server (match-string-no-properties 4))
-            (farm (match-string-no-properties 5)))
-        (setq urls
-	      (cons
-	       (cons (format "http://farm%s.staticflickr.com/%s/%s_%s_z.jpg" farm server id secret)
-		     (format "http://www.flickr.com/photos/%s/%s/" owner id))
-	       urls))))
-    urls))
+  (let ((json-object-type 'hash-table))
+    (let* ((parsed-json (json-read))
+           (photos (gethash "photo"
+                            (gethash "photos" parsed-json))))
+      (mapcar 'photo-to-data photos))))
+
 
 (defun dl-url (url)
   (let ((gimme-wget (shell-command-to-string "which wget")))
     (when (equal gimme-wget "")
       (error "You don't have wget on your Emacs path. Please consult the README on how to fix this.")))
   (let* ((tempfile-path (make-temp-file "catfile"))
-	(command (format "wget \"%s\" -O %s" url tempfile-path)))
+         (command (format "wget \"%s\" -O %s" url tempfile-path)))
     (shell-command-to-string command)
     (find-file tempfile-path)))
 
 
 (defun get-cat-urls (kitten-tag)
-  (message "Getting image list from flickr")
-  (let* ((url (format "http://api.flickr.com/services/rest/?format=json&sort=random&method=flickr.photos.search&tags=%s&tag_mode=all&api_key=%s&per_page=%d" gimme-cat-tag gimme-cat-api-key gimme-cat-url-batch-size)))
+  (let* ((url (format "https://api.flickr.com/services/rest/?format=json&sort=random&method=flickr.photos.search&tags=%s&tag_mode=all&api_key=%s&per_page=%d&nojsoncallback=1" gimme-cat-tag gimme-cat-api-key gimme-cat-url-batch-size)))
     (dl-url url)
     (let* ((photo-urls (parse-photo-info)))
       (kill-buffer (current-buffer))
