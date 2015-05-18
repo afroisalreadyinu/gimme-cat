@@ -20,7 +20,7 @@
   "gimme-cat minor mode"
   (interactive "P")
   (setq gimme-cat-mode (if (null arg) (not gimme-cat-mode)
-			 (> (prefix-numeric-value arg) 0))))
+                         (> (prefix-numeric-value arg) 0))))
 
 (defvar gimme-cat-keymap
   (let ((map (make-sparse-keymap)))
