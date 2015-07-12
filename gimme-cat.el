@@ -6,9 +6,9 @@
 
 (require 'json)
 
-(defvar gimme-cat-urls nil)
-(defvar gimme-cat-last-updated 0)
-(defvar gimme-cat-api-key "ac6d4ba1e8c5ab491d534b480c830c37")
+(defvar gimme-cat--urls nil)
+(defvar gimme-cat--last-updated 0)
+(defvar gimme-cat--api-key "ac6d4ba1e8c5ab491d534b480c830c37")
 (defvar gimme-cat-tag "kitten")
 (defvar gimme-cat-url-batch-size 500)
 (defvar gimme-cat-mode nil)
@@ -40,8 +40,8 @@
 (defvar gimme-cat-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "SPC") 'gimme-cat)
-    (define-key map (kbd "k") 'close-gimmecat-buffers)
-    (define-key map (kbd "o") 'open-img-page)
+    (define-key map (kbd "k") 'gimme-cat-close-gimmecat-buffers)
+    (define-key map (kbd "o") 'gimme-cat-open-img-page)
     map))
 
 (unless (assq 'gimme-cat-mode minor-mode-alist)
@@ -55,7 +55,7 @@
               minor-mode-map-alist)))
 
 
-(defun photo-to-data (photo)
+(defun gimme-cat--photo-to-data (photo)
   (cons (format "https://farm%s.staticflickr.com/%s/%s_%s_z.jpg"
                 (gethash "farm" photo)
                 (gethash "server" photo)
@@ -65,15 +65,15 @@
                 (gethash "owner" photo)
                 (gethash "id" photo))))
 
-(defun parse-photo-info ()
+(defun gimme-cat--parse-photo-info ()
   (let ((json-object-type 'hash-table))
     (let* ((parsed-json (json-read))
            (photos (gethash "photo"
                             (gethash "photos" parsed-json))))
-      (mapcar 'photo-to-data photos))))
+      (mapcar 'gimme-cat--photo-to-data photos))))
 
 
-(defun dl-url (url)
+(defun gimme-cat--dl-url (url)
   (let ((gimme-wget (shell-command-to-string "which wget")))
     (when (equal gimme-wget "")
       (error "You don't have wget on your Emacs path. Please consult the README on how to fix this.")))
@@ -83,40 +83,40 @@
     (find-file tempfile-path)))
 
 
-(defun get-cat-urls (kitten-tag)
-  (let* ((url (format "https://api.flickr.com/services/rest/?format=json&sort=random&method=flickr.photos.search&tags=%s&tag_mode=all&api_key=%s&per_page=%d&nojsoncallback=1" gimme-cat-tag gimme-cat-api-key gimme-cat-url-batch-size)))
-    (dl-url url)
-    (let* ((photo-urls (parse-photo-info)))
+(defun gimme-cat--get-cat-urls (kitten-tag)
+  (let* ((url (format "https://api.flickr.com/services/rest/?format=json&sort=random&method=flickr.photos.search&tags=%s&tag_mode=all&api_key=%s&per_page=%d&nojsoncallback=1" gimme-cat-tag gimme-cat--api-key gimme-cat-url-batch-size)))
+    (gimme-cat--dl-url url)
+    (let* ((photo-urls (gimme-cat--parse-photo-info)))
       (kill-buffer (current-buffer))
-      (setq gimme-cat-last-updated (float-time))
-      (setq gimme-cat-urls photo-urls))))
+      (setq gimme-cat--last-updated (float-time))
+      (setq gimme-cat--urls photo-urls))))
 
 
 (defun gimme-cat (arg)
   (interactive "P")
   (when (or arg
-            (not gimme-cat-urls)
-            (> (/ (- (float-time) gimme-cat-last-updated) (* 60 60)) 1))
-    (get-cat-urls gimme-cat-tag))
-  (let ((img-and-page-url (nth (random (length gimme-cat-urls)) gimme-cat-urls)))
-    (dl-url (car img-and-page-url))
+            (not gimme-cat--urls)
+            (> (/ (- (float-time) gimme-cat--last-updated) (* 60 60)) 1))
+    (gimme-cat--get-cat-urls gimme-cat-tag))
+  (let ((img-and-page-url (nth (random (length gimme-cat--urls)) gimme-cat--urls)))
+    (gimme-cat--dl-url (car img-and-page-url))
     (image-mode)
     (gimme-cat-mode)
-    (setq gimme-cat-urls (delete img-and-page-url gimme-cat-urls))
+    (setq gimme-cat--urls (delete img-and-page-url gimme-cat--urls))
     (setq gimme-cat-current img-and-page-url)))
 
 
-(defun close-if-cat (buffer)
+(defun gimme-cat--close-if-cat (buffer)
   (with-current-buffer buffer
     (when gimme-cat-mode
       (kill-buffer))))
 
 
-(defun close-gimmecat-buffers ()
+(defun gimme-cat-close-gimmecat-buffers ()
   (interactive)
-  (mapcar 'close-if-cat (buffer-list)))
+  (mapcar 'gimme-cat--close-if-cat (buffer-list)))
 
-(defun open-img-page ()
+(defun gimme-cat-open-img-page ()
   (interactive)
   (browse-url (cdr gimme-cat-current)))
 
