@@ -24,6 +24,14 @@ key bindings. You can load a new cat by pressing space. You can then
 close all the opened cat images by pressing `k`. If you want to go to
 the Flickr page for the image currently displayed, press `o`.
 
+Cat pomodoros (catsup)
+------------------------------
+
+To start a pomodoro that ends with a cat picture, use `M-x <RET> gimme-cat-start-catsup`. This will start a 25 minute pomodoro that ends with calling `gimme-cat`. It can be stopped with `M-x <RET> gimme-cat-stop-catsup`.
+
+If you bind `gimme-cat-start-catsup` to a keycombo, you can use the universal argument to change the number of minutes the pomodoro lasts. For example, `C-u 15 <catsup-keycombo>` will start a 15 minute pomodoro.
+
+
 Fixing the path on MAC OS X
 ---------------------------
 
@@ -41,3 +49,8 @@ with the following expression:
     (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
 
 Reload your configuration, and everything should run smoothly.
+
+Thanks
+---------------------------
+
+Endre Bakken Stovner (catsup functionality)

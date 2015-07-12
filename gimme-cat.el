@@ -16,11 +16,26 @@
 (defvar gimme-cat-current nil)
 (make-variable-buffer-local 'gimme-cat-current)
 
+
 (defun gimme-cat-mode (&optional arg)
   "gimme-cat minor mode"
   (interactive "P")
   (setq gimme-cat-mode (if (null arg) (not gimme-cat-mode)
                          (> (prefix-numeric-value arg) 0))))
+
+
+(defun gimme-cat-start-catsup (&optional arg)
+  (interactive "P")
+  (let ((seconds (if arg
+                     (* (car arg) 60)
+                   (* 25 60))))
+    (setq gimme-cat--catsup-timer (run-at-time seconds nil 'gimme-cat 5))))
+
+
+(defun gimme-cat-stop-catsup ()
+  (interactive)
+  (cancel-timer gimme-cat--catsup-timer))
+
 
 (defvar gimme-cat-keymap
   (let ((map (make-sparse-keymap)))
